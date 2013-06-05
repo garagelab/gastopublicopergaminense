@@ -1,0 +1,42 @@
+{% load meses %}
+<div id="filtro_fecha" class="clearfix">
+  <ul>
+    <li>
+      <span class="boton">Filtrar por fecha &raquo;</span>
+      Actualmente usted esta viendo el per&iacute;odo: <a href="javascript:void(0);"><strong>{{start_date|date:"F"}}</strong> {{start_date|date:"Y"}} - <strong>{{end_date|date:"F"}}</strong> {{end_date|date:"Y"}}</a>
+    </li>
+    <li>
+      <form id="buscador" action="/ordenes-de-compra" method="">
+	<p><input type="text" name="q" placeholder="Buscar ordenes de compra..." id="s" /></p>
+      </form>
+    </li>
+  </ul>
+  {% month_range from request.fecha_minima until request.fecha_maxima as mrange %}
+  {% regroup mrange by year as year_months %}
+  <form action="" method="get" id="timeline" style="display: none;">
+    <span class="arrow"></span>
+    <fieldset>
+      <button id="btn-filtrar" type="submit">Filtrar</button>
+      <label for="valueAA">Desde:</label>
+      <select name="filter_end_date" id="valueAA">
+	{% for year in year_months reversed %}
+	<optgroup label="{{ year.grouper }}">
+	  {% for month in year.list reversed %}
+	  <option value="{{month|date:"Y/m"}}" alt="{{month|date:"F Y"}}" {% if end_date.year == year.grouper and end_date.month == month.month%}selected="selected"{% endif %}>{{month|date:"M Y"}}</option>
+	  {% endfor %}
+	</optgroup>
+	{% endfor %}
+      </select>
+      <label for="valueBB">Hasta:</label>
+      <select name="filter_start_date" id="valueBB">
+	{% for year in year_months reversed %}
+	<optgroup label="{{ year.grouper }}">
+	  {% for month in year.list reversed %}
+	  <option value="{{month|date:"Y/m"}}" alt="{{month|date:"F Y"}}" {% if start_date.year == year.grouper and start_date.month == month.month%}selected="selected"{% endif %}>{{month|date:"M Y"}}</option>
+	  {% endfor %}
+	</optgroup>
+	{% endfor %}
+      </select>
+    </fieldset>
+  </form>
+</div><!-- /filtro_fecha -->

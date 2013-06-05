@@ -1,0 +1,82 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>{% block title %}Gasto Público Marplatense{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/global.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="/static/css/redmond/jquery-ui-1.7.1.custom.css" type="text/css" />
+    <link rel="Stylesheet" href="/static/css/ui.slider.extras.css" type="text/css" />
+    {% block rss %}{% endblock %}
+  </head>
+  <body>
+    <div id="principal">
+      <div id="cabecera" class="clearfix">
+	<div id="logo">
+	  <h1>
+	    <a href="/" title="Gasto P&uacute;blico Marplatense - ¿Para qué se usa tu plata?">Gasto P&uacute;blico <span>Marplatense</span></a>
+	  </h1>
+	  <h2>¿Para qué se usa tu plata?</h2>
+	</div><!-- /logo -->
+	<div id="apoyo_de">
+	  <ul>
+	    <li><strong>Una iniciativa de:</strong></li>
+            <li><a href="http://www.garagelab.cc/" target="_blank"><img src="/static/img/logo-gl.png" alt="Logo Garagelab"/></a></li>
+	    <li><a href="http://poderciudadano.org/" target="_blank"><img src="/static/img/logo-poder-ciudadano.gif" alt="Logo Poder Ciudadano" /></a></li>
+	  </ul>
+	</div><!-- /apoyo_de -->
+      </div><!-- /cabecera -->
+      {% block heading %}
+      {% endblock %}
+      {% block content %}
+      {% endblock %}
+    </div><!-- /principal -->
+    <div id="footer">
+      <p>
+	<strong>Gasto Público Marplatense</strong> es un proyecto independiente, no
+depende de la Municipalidad de General Pueyrredón ― <a href="/acerca-de-gpm">Acerca de Gasto Público Marplatense</a>
+      </p>
+    </div><!-- /footer -->
+    <script type="text/html" id="detalle_template">
+      <![CDATA[
+        <table style="border-bottom: 1px solid black">
+	  <tr>
+	    <th>Cantidad</th>
+	    <th>Detalle</th>
+	    <th>Imp. unitario</th>
+	  </tr>
+	  <% for (var i=0; i < this.lineas.length; i++) { %>
+	     <tr>
+	       <td><%= this.lineas[i].cantidad %></td>
+	       <td><%= this.lineas[i].detalle %></td>
+	       <td>$ <%= this.lineas[i].importe_unitario %></td>
+	     </tr>
+	     <% } %>
+	     <tr><td colspan="3"><a href="<%= this.href %>" target="_blank">Ver esta orden en otra ventana</a></td></tr>
+	  </table>
+	  ]]>
+    </script>
+    <script src="http://www.google.com/jsapi" type="text/javascript"></script> 
+    <script type="text/javascript"> 
+      google.load("jquery", "1.3.2");
+      google.load("jqueryui", "1.7.1");
+      google.load("visualization", "1", {'packages':["table", "linechart", "corechart"], 'language': 'es'});
+    </script>
+    <script type="text/javascript" src="/static/js/jquery.jqote2.min.js"></script>
+    <script type="text/javascript" src="/static/js/selectToUISlider.jQuery.js"></script>
+    <script type="text/javascript" src="/static/js/app.js"></script>
+    <script type="text/javascript" src="/static/js/timeline.js" charset="utf-8"></script>
+    {% if start_date and end_date %} 
+    <script type="text/javascript">
+      BASE_URL = '{{request.gpb_base_url}}';
+      RANGO_FECHAS = {};
+      RANGO_FECHAS.start = new Date('{{start_date|date:"Y-m-d"}}');
+      RANGO_FECHAS.end = new Date('{{end_date|date:"Y-m-d"}}');
+      if (RANGO_FECHAS.end > new Date()) RANGO_FECHAS.end = new Date();
+    </script>
+    {% endif %}
+    {% block extra_js %}
+    {% endblock %}
+  </body>
+</html>

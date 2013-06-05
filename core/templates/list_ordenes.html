@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load objlink %}
+{% load currency %}
+{% load common_html %}
+{% load tiempo_en_letras %}
+
+{% block title %}
+{% tiempo_en_letras start_date end_date as periodo %}
+Órdenes de Compra emitidas por la Municipalidad de General Pueyrredón {{periodo|striptags}}- {{block.super}}
+{% endblock %}
+
+{% block heading %}
+{% tiempo_en_letras start_date end_date as periodo %}
+<div id="descripcion">
+  <h2>Órdenes de Compra emitidas por la Municipalidad de General Pueyrredón {{periodo}} {% if request.GET.q %} para la búsqueda "<strong>{{request.GET.q}}</strong>"{% endif %}</h2>
+</div>
+{% endblock %}
+
+{% block content %}
+{% include "filtro.html" %}
+
+<div class="bloque">
+  <div class="pagination">
+    <span class="step-links">
+      {% if ordenes_de_compra.has_previous %}
+      <a href="?page={{ ordenes_de_compra.previous_page_number }}{% if request.GET.q %}&q={{request.GET.q}}{% endif %}">anterior</a>
+      {% endif %}
+
+      <span class="current">
+        Página {{ ordenes_de_compra.number }} de {{ ordenes_de_compra.paginator.num_pages }}.
+      </span>
+
+      {% if ordenes_de_compra.has_next %}
+      <a href="?page={{ ordenes_de_compra.next_page_number }}{% if request.GET.q %}&q={{request.GET.q}}{% endif %}">siguiente</a>
+      {% endif %}
+    </span>
+  </div>
+  <table class="ordenes_de_compra table">
+    <colgroup>
+      <col class="oc_numero">
+      <col class="proveedor">
+      <col class="destino">
+      <col class="importe">
+      <col class="detalle">
+    </colgroup>
+    <tr class="encabezados">
+      <th>OC Nº</th>
+      <th>Proveedor</th>
+      <th>Destino</th>
+      <th>Importe</th>
+      <th></th>
+    </tr>
+    {% with ordenes_de_compra.object_list as ordenes %}
+    {% regroup ordenes by fecha as compras_por_dia %}
+    {% for dia in compras_por_dia %}
+    <tr class="grupo_fecha">
+      <th colspan="5">{{dia.grouper|date:"d/m/Y"}}</th>
+    </tr>
+    {% comment %}si es una busqueda, queremos mostrar highlight_proveedor y highlight_destino{% endcomment %}
+    {% if request.GET.q %}
+    {% for c in dia.list %}
+    <tr class="orden">
+      <td>{{c.oc_numero}}</td>
+      <td><a href="{{c.proveedor.get_absolute_url}}" class="tablelink"><img src="/static/img/url_icon.gif" /></a> <a href="{{c.proveedor.get_absolute_url}}">{{c.highlight_proveedor|safe}}</a></td>
+      <td><a href="{{c.destino.get_absolute_url}}" class="tablelink"><img src="/static/img/url_icon.gif" /></a> <a href="{{c.destino.get_absolute_url}}">{{c.highlight_reparticion|safe}}</a></td>
+      <td>{{c.importe|currency}}</td>
+      <td class="detalle"><a class="ordenes_de_compra_detalle" title="Detalle de la orden de compra {{c.oc_numero}}" href="{{c.get_absolute_url}}">Ver detalle</a></td>
+    </tr>
+    {% endfor %}
+    {% else %}
+    {% for c in dia.list %}
+    <tr class="orden">
+      <td>{{c.oc_numero}}</td>
+      <td>{{c.proveedor|tablelink}}</td>
+      <td>{{c.destino|tablelink}}</td>
+      <td>{{c.importe|currency}}</td>
+      <td class="detalle"><a class="ordenes_de_compra_detalle" title="Detalle de la orden de compra {{c.oc_numero}}" href="{{c.get_absolute_url}}">Ver detalle</a></td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    {% endfor %}
+    {% endwith %}
+  </table>
+ 
+  <div class="pagination">
+    <span class="step-links">
+      {% if ordenes_de_compra.has_previous %}
+      <a href="?page={{ ordenes_de_compra.previous_page_number }}{% if request.GET.q %}&q={{request.GET.q}}{% endif %}">anterior</a>
+      {% endif %}
+
+      <span class="current">
+        Página {{ ordenes_de_compra.number }} de {{ ordenes_de_compra.paginator.num_pages }}.
+      </span>
+
+      {% if ordenes_de_compra.has_next %}
+      <a href="?page={{ ordenes_de_compra.next_page_number }}{% if request.GET.q %}&q={{request.GET.q}}{% endif %}">siguiente</a>
+      {% endif %}
+    </span> ― <a class="csv-link" href="?format=csv">Todas estas órdenes de compra en formato CSV</a>
+  </div>
+
+</div>
+{% endblock %}

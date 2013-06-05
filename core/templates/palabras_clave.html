@@ -1,0 +1,5 @@
+<ul class="tagcloud">
+  {% for palabra in tagcloud|slice:":40" %}
+  <li>{{palabra.0}}</li>
+  {% endfor %}
+</ul>

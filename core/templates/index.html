@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load objlink %}
+{% load currency %}
+{% load tiempo_en_letras %}
+{% load meses %}
+{% load common_html %}
+{% load cache %}
+
+{% block heading %}
+{% if request.path == '/' %}
+<div id="descripcion">
+  <h2><strong>Gasto Público Marplatense</strong> es una herramienta para
+explorar los datos de compras a proveedores que publica la <strong>Municipalidad de General Pueyrredón, Argentina</strong>. <a href="/acerca-de-gpm">&rarr;</a></h2>
+</div><!-- /descripcion -->
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div id="contador_gastos" class="clearfix">
+  {% tiempo_en_letras start_date end_date as periodo %}
+  <h3>{{periodo|first_upper}}, la Municipalidad de General Pueyrredón:</h3>
+  <dl class="small first">
+    <div>
+      <dd>Emitió órdenes de compra por</dd>
+      <dt>{{gasto_mensual_total|currency}}</dt>
+    </div>
+  </dl>
+  <dl class="small">
+    <div>
+      <dd>Promedio de gasto mensual</dd>
+      <dt>{{gasto_mensual_promedio|currency}}</dt>
+    </div>
+  </dl>
+  <dl class="small">
+    <div>
+      <dd>Proveedores Totales</dd>
+      <dt>{{cantidad_proveedores_unicos}}</dt>
+    </div>
+  </dl>
+  <dl class="small last">
+    <div>
+      <dd>Cantidad de Ordenes de Compra</dd>
+      <dt>{{cantidad_ordenes_de_compra}}</dt>
+    </div>
+  </dl>
+</div><!-- /contador_gastos -->
+{% include "filtro.html" %}
+<div id="contenedor" class="clearfix">
+  <div class="bloque">
+    <div class="caja izquierda">
+      <h4>Las 5 reparticiones que más gastaron {{periodo}}</h4>
+      <p>Para ver más info mueva el mouse sobre el gráfico:</p>
+      <div id="piechart_div"></div> 
+    </div><!-- /caja izquierda -->
+    <div class="caja derecha">
+      <h4>Los 10 proveedores más beneficiados {{periodo}}</h4>
+      <p>Para ver más info haga clic en cualquiera de los siguientes items listados a continuación:</p>
+      
+      <ol class="lista-proveedores">
+	{% for p in proveedores|slice:":10" %}
+	<li>{{p|objlink}}<strong>{{p.total_compras|currency}}</strong></li>
+	{% endfor %}
+      </ol>
+    </div><!-- /caja derecha -->
+  </div><!-- /bloque -->
+  <div class="bloque">
+    <h3 class="grande">Evolución del gasto {{periodo}}</h3>
+    <div id="table_div_jscode" style="height: 200px; width: 100%"></div>
+  </div><!-- /bloque -->
+  <div class="bloque">
+    <h3 class="grande">Ordenes de compra emitidas por la Municipalidad {{periodo}}</h3>
+    <p>Las órdenes de compra aquí exhibidas se extraen de la sección <a
+href="http://www.mardelplata.gov.ar/compras/comprasrealizadas.aspx"><strong>Compras
+Realizadas</strong></a> del sitio web de la Municipalidad de General Pueyrredón, única fuente oficial para dicha información.</p>
+    <table class="ordenes_de_compra table">
+      {% regroup ordenes_de_compra by fecha as compras_por_dia %}
+      <colgroup>
+	<col class="destino" />
+	<col class="proveedor" />
+	<col class="importe" />
+	<col class="detalle" />
+      </colgroup>
+      <tbody>
+	<tr class="encabezados">
+	  <th>Destino</th>
+	  <th>Proveedor</th>
+	  <th>Importe</th>
+	  <th></th>
+	</tr>
+	{% for dia in compras_por_dia|slice:":4" %}						
+
+	<tr class="grupo_fecha">
+	  <th colspan="4">{{dia.grouper|date:"d/m/Y"}}</th>
+	</tr>
+	{% for c in dia.list %}
+	<tr class="orden">
+	  <td>{{c.destino|tablelink}}</td>
+	  <td>{{c.proveedor|tablelink}}</td>
+	  <td>{{c.importe|currency}}</td>
+	  <td><a class="ordenes_de_compra_detalle" href="{{c.get_absolute_url}}">Ver detalle</a></td>
+	</tr>
+	{% endfor %}
+	{% endfor %}
+
+      </tbody>
+    </table>
+    <p class="caja-destacada"><a href="/ordenes-de-compra/{{request.gpb_date_range}}">Ver todas las ordenes de compra emitidas por la municipalidad {{periodo}}</a> ― <a title="Órdenes de compra en formato CSV" class="csv-link" href="/ordenes-de-compra/{{request.gpb_date_range}}?format=csv">CSV</a> ― <a title="Canal RSS de órdenes de compra" class="rss-link" href="{% url ordenes_rss %}">Feed RSS de órdenes de compra</a></p>
+  </div><!-- /bloque -->
+</div><!-- /contenedor -->
+{% endblock %}
+{% block extra_js %}
+    
+    <script type="text/javascript">
+      // var start_date = new Date('{{start_date|date:"Y-m-d"}}');
+      // var end_date = new Date('{{end_date|date:"Y-m-d"}}');
+      // if (end_date > new Date()) end_date = new Date();
+      
+      function draw_table() {
+      {{ gasto_por_mes_datatable_js|safe }}
+      var date_formatter = new google.visualization.DateFormat({pattern: 'MMMM yyyy'});
+      date_formatter.format(gasto_por_mes, 0);
+      var number_formatter = new google.visualization.NumberFormat({prefix: '$', negativeColor: 'red', negativeParens: true, groupingSymbol:'.', decimalSymbol:','});
+      number_formatter = number_formatter.format(gasto_por_mes, 1);
+      
+      var linechart = new google.visualization.LineChart(document.getElementById('table_div_jscode'));
+      linechart.draw(gasto_por_mes, {showRowNumber: true, legend: 'none'});
+      
+      {{reparticion_datatable_js|safe}}
+      var piechart = new google.visualization.PieChart(document.getElementById('piechart_div'));
+      piechart.draw(reparticion_gastos, 
+      { width: 420, height: 400, legend: 'none' });
+      }
+      
+      google.setOnLoadCallback(draw_table);
+      
+    </script>
+{% endblock %}
+

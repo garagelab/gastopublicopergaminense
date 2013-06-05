@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load objlink %}
+{% load currency %}
+{% load common_html %}
+{% load tiempo_en_letras %}
+
+{% block title %}
+Detalle de la orden de compra {{orden.oc_numero}} - {{block.super}}
+{% endblock %}
+
+{% block heading %}
+<div id="descripcion">
+  <h2>Detalle de la orden de compra <strong>{{orden.oc_numero}}</strong> con fecha <strong>{{orden.fecha|date:"d/m/Y"}}</strong>, adjudicada a {{orden.proveedor|objlink}} con destino {{orden.destino|objlink}}</h2>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="bloque">
+<table class="ordenes_de_compra">
+    <colgroup>
+      <col class="cantidad">
+      <col class="detalle">
+      <col class="importe">
+    </colgroup>
+    <tr>
+      <th>Cantidad</th>
+      <th>Detalle</th>
+      <th>Importe unitario</th>
+    </tr>
+    {% for cli in orden.compralineaitem_set.all %}
+    <tr>
+    <td>{{cli.cantidad}}</td>
+    <td>{{cli.detalle}}</td>
+    <td>{{cli.importe_unitario|currency}}</td>
+    </tr>
+    {% endfor %}
+    <tr style="border-top: 1px solid black">
+      <td colspan="2" style="text-align: right">Total:</td>
+      <td><strong>{{orden.importe|currency}}</strong></td>
+    </tr>
+</table>
+<p>Debido a la implementación de la sección de compras en el sitio de la Municipalidad de General Pueyrredón, no podemos proveer un enlace directo a la fuente oficial de la información para esta órden de compra. Para verificar los datos aquí exhibidos, <a href="http://www.bahiablanca.gov.ar/compras/comprasrealizadas.aspx">ingrese al sitio de MBB</a> y busque la OC <strong>{{orden.oc_numero}}</strong> del año <strong>{{orden.fecha.year}}</strong> adjudicada al proveedor <strong>{{orden.proveedor}}</strong>
+</div>
+
+{% endblock %}
