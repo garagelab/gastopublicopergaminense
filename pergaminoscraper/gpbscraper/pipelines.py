@@ -10,10 +10,10 @@ from scrapy.core.exceptions import DropItem
 from scrapy.core.manager import scrapymanager
 from scrapy.http import Request
 from scrapy import log
-from gpbscraper.items import CompraItem, CompraLineaItem, ProveedorItem 
+from gpbscraper.items import CompraItem, CompraLineaItem, ProveedorItem
 from gpbscraper.spiders.compras import ComprasSpider
 from gpbscraper.spiders.compra_linea import CompraLineasSpider
-from gpbweb.core import models
+from core import models
 
 from twisted.internet import defer, threads
 
@@ -41,7 +41,7 @@ class ComprasPersisterPipeline(object):
             self._persistCompraItem(item)
 
         return item
-    
+
     @transaction.commit_on_success
     def _persistCompraItem(self, compra_item):
 
@@ -58,7 +58,7 @@ class ComprasPersisterPipeline(object):
                                proveedor=proveedor,
                                destino=reparticion)
 
-            
+
         compra.save()
 
 
@@ -71,14 +71,14 @@ class ComprasPersisterPipeline(object):
                                              unidad_medida=cli['unidad_medida'])
             cli_obj.save()
 
-            
+
 
 
 
 class CompraLineasPersisterPipeline(object):
     def __init__(self):
         dispatcher.connect(self.spider_opened, signals.spider_opened)
-    
+
     def spider_opened(self, spider):
         for c in models.Compra.objects.filter(compralineaitem=None):
             scrapymanager.engine.crawl(Request('http://www.bahiablanca.gov.ar/compras4/dcomprV2.asp?wOCabc=%s&wEjercicio=%s' % (c.orden_compra, c.fecha.year),
@@ -120,5 +120,5 @@ class ProveedoresPersisterPipeline(object):
 
         if isinstance(item, ProveedorItem):
             threads.deferToThread(persist, item)
-        
+
         return item

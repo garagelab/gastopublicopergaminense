@@ -11,7 +11,7 @@ from gpbscraper.items import CompraItem, CompraLineaItem
 
 
 BASE_URL = 'http://compras.pergamino.gob.ar/compras_getdata.php'
-OC_DETAIL_BASE_URL = 'http://compras.pergamino.gob.ar/compras_getdetail.php' # '?ejercicio=2011&oc=3032'
+OC_DETAIL_BASE_URL = 'http://compras.pergamino.gob.ar/compras_getdetail.php'
 
 class ComprasPergamino(BaseSpider):
 
@@ -48,8 +48,7 @@ class ComprasPergamino(BaseSpider):
             item['proveedor'] = row['RAZON_SOCIAL']
             item['destino'] = 'Municipalidad de Pergamino'
 
-            tipo, suministro, anio = re.search("(.+) (\d+)/(\d+)", cr.find('EXPEDIENTE').text).groups()
-            # item['anio'] = row['EJERCICIO']
+            item['anio'] = row['EJERCICIO']
             # item['tipo'] = tipo
             # item['suministro'] = suministro
 

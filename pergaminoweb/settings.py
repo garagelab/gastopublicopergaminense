@@ -66,7 +66,7 @@ ADMIN_MEDIA_PREFIX = '/media/'
 SECRET_KEY = 'h$23y4ew5qsr=4o-7_x3x8%$8l%(rejb+_@l+1--ja3p6lcmz('
 
 TEMPLATE_CONTEXT_PROCESSORS = [
-    "django.core.context_processors.auth", 
+    "django.core.context_processors.auth",
     'django.core.context_processors.request',
 ]
 
@@ -84,10 +84,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'mdqweb.core.middleware.SmartAppendSlashMiddleware',
-    'mdqweb.core.middleware.DateLimitsMiddleware',
-    'mdqweb.core.middleware.StripDateRangeMiddleware',
-    'mdqweb.core.middleware.FilterQueryToDateRangeMiddleware',
+    'core.middleware.SmartAppendSlashMiddleware',
+    'core.middleware.DateLimitsMiddleware',
+    'core.middleware.StripDateRangeMiddleware',
+    'core.middleware.FilterQueryToDateRangeMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
 )
 
@@ -109,8 +109,8 @@ INSTALLED_APPS = (
     'south',
     'mdqweb.annoying',
     'django_extensions',
-    'mdqweb.core',
-    'mdqweb.postgres_fts',
+    'core',
+    'postgres_fts',
     'django.contrib.flatpages',
 )
 

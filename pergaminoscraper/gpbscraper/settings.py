@@ -6,7 +6,7 @@
 #     http://doc.scrapy.org/topics/settings.html
 #
 # Or you can copy and paste them from where they're defined in Scrapy:
-# 
+#
 #     scrapy/conf/default_settings.py
 #
 
@@ -14,7 +14,7 @@ import os.path
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'gpbweb')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 
 BOT_NAME = 'gpbscraper'
@@ -30,7 +30,7 @@ DEFAULT_REQUEST_HEADERS = {'Accept-Language':'es'}
 #ITEM_PIPELINES = ['gpbscraper.pipelines.ItemCounterPipeline', 'gpbscraper.pipelines.ComprasPersisterPipeline']
 ITEM_PIPELINES = ['gpbscraper.pipelines.ComprasPersisterPipeline']
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gpbweb.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 
 SCHEDULER_MIDDLEWARES = {
     'scrapy.contrib.schedulermiddleware.duplicatesfilter.DuplicatesFilterMiddleware': None,
