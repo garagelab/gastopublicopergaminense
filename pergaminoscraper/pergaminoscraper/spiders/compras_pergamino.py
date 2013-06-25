@@ -26,10 +26,11 @@ class ComprasPergaminoSpider(BaseSpider):
                                 'page': '1',
                                 'rows': '10'
                             },
-                            callback=self.getOCs
+                            meta={'page': 1},
+                            callback=self.getPageOfOCs
                         )]
 
-    def getOCs(self, response):
+    def getPageOfOCs(self, response):
         ocs = simplejson.loads(response.body)
 
         for row in ocs['rows']:
@@ -56,6 +57,18 @@ class ComprasPergaminoSpider(BaseSpider):
             req.meta['compra'] = item
 
             yield req
+
+        if len(ocs['rows']) > 0:
+            yield FormRequest(BASE_URL,
+                              formdata={
+                                  'ejercicio': str(self.ejercicio),
+                                  'page': str(response.request.meta['page'] + 1),
+                                  'rows': '10'
+                              },
+                              meta={'page': response.request.meta['page'] + 1},
+                              callback=self.getPageOfOCs)
+
+        yield None
 
 
     def getOCDetalle(self, response):
