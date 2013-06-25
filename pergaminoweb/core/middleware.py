@@ -1,6 +1,6 @@
 # coding: utf-8
-from mdqweb.core.models import Compra
-from mdqweb.core.urls import anual_expression, mensual_expression, periodo_expression
+from pergaminoweb.core.models import Compra
+from pergaminoweb.core.urls import anual_expression, mensual_expression, periodo_expression
 import re
 from django.conf import settings
 from django import http
@@ -11,14 +11,14 @@ class FilterQueryToDateRangeMiddleware(object):
 
     def process_request(self, request):
 
-        if not ('filter_end_date' in request.GET and 'filter_start_date' in request.GET): 
+        if not ('filter_end_date' in request.GET and 'filter_start_date' in request.GET):
           return
 
         if not (re.match(mensual_expression, request.GET['filter_end_date'] + '/')  and re.match(mensual_expression, request.GET['filter_start_date'] + '/')):
             return http.HttpResponseBadRequest()
 
-        return http.HttpResponseRedirect('{0}{1}{2}/{3}'.format(request.gpb_base_url, '/' if request.gpb_base_url[-1] != '/' else '', 
-                                         request.GET['filter_start_date'], 
+        return http.HttpResponseRedirect('{0}{1}{2}/{3}'.format(request.gpb_base_url, '/' if request.gpb_base_url[-1] != '/' else '',
+                                         request.GET['filter_start_date'],
                                          request.GET['filter_end_date']))
 
 
@@ -38,7 +38,7 @@ class StripDateRangeMiddleware(object):
 
 class DateLimitsMiddleware:
     """ Hacer que las fechas maxima y minima de Compras este en request """
-    
+
     def process_request(self, request):
         if request.path.startswith('/admin'):
             return None
@@ -69,7 +69,7 @@ class SmartAppendSlashMiddleware(object):
         new_url = old_url[:]
         # Append a slash if SMART_APPEND_SLASH is set and the resulting URL
         # resolves.
-        if settings.SMART_APPEND_SLASH: 
+        if settings.SMART_APPEND_SLASH:
             if (not old_url[1].endswith('/')) and not _resolves(old_url[1]) and _resolves(old_url[1] + '/'):
                 new_url[1] = new_url[1] + '/'
                 if settings.DEBUG and request.method == 'POST':
@@ -77,7 +77,7 @@ class SmartAppendSlashMiddleware(object):
             else:
                 if (old_url[1].endswith('/')) and _resolves(old_url[1][:-1]):
                     new_url[1] = old_url[1][:-1]
-                    
+
             if new_url != old_url:
                 # Redirect
                 if new_url[0]:

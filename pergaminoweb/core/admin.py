@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.contrib import admin
-from mdqweb.core import models
+from pergaminoweb.core import models
 
 class ReparticionAdmin(admin.ModelAdmin):
     model = models.Reparticion
@@ -23,4 +23,3 @@ admin.site.register(models.Reparticion, ReparticionAdmin)
 admin.site.register(models.ReparticionSinonimo, ReparticionSinonimoAdmin)
 admin.site.register(models.Compra, CompraAdmin)
 admin.site.register(models.Proveedor, ProveedorAdmin)
-

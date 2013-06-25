@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from mdqweb.core import models
+from pergaminoweb.core import models
 from django.contrib.syndication.views import Feed
 from django.shortcuts import get_object_or_404
 from datetime import datetime
@@ -58,4 +58,3 @@ class ReparticionOrdenesDeCompraFeed(OrdenesDeCompraFeed):
 
     def items(self, obj):
         return self._items().filter(destino=obj)[:100]
-

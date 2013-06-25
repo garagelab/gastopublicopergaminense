@@ -8,14 +8,14 @@ from django.utils.translation import ugettext_lazy as _
 
 from django_extensions.db import fields
 
-from mdqweb.postgres_fts import models as fts_models
+from pergaminoweb.postgres_fts import models as fts_models
 
 from south.modelsinspector import add_ignored_fields
 
-# add_ignored_fields(["^mdqweb\.postgres_fts\.models\.VectorField",
+# add_ignored_fields(["^pergaminoweb\.postgres_fts\.models\.VectorField",
 #                     "^django_extensions\.db\.fields\.AutoSlugField",
 #                     "^django_extensions\.db\.fields\.CreationDateTimeField"])
-add_ignored_fields(["^mdqweb\.postgres_fts\.models\.VectorField"])
+add_ignored_fields(["^pergaminoweb\.postgres_fts\.models\.VectorField"])
 
 
 ##### BEGIN Monkeypatch de AutoSlugField y CreationDateTimeField
@@ -72,7 +72,7 @@ class Proveedor(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('mdqweb.core.views.proveedor', (),
+        return ('pergaminoweb.core.views.proveedor', (),
                 {'proveedor_slug': self.slug})
 
 
@@ -118,7 +118,7 @@ class Reparticion(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('mdqweb.core.views.reparticion', (),
+        return ('pergaminoweb.core.views.reparticion', (),
                 {'reparticion_slug': self.slug})
 
 
@@ -129,7 +129,7 @@ class CompraManager(models.Manager):
     # es medio hacky, pero es lo que hay
     # idea encontrada aca: http://www.caktusgroup.com/blog/2009/09/28/custom-joins-with-djangos-queryjoin/
     def search(self, query):
-        c = self.extra(select={ 'rank': 'ts_rank_cd(core_compralineaitem.search_index, to_tsquery(\'spanish\', E\'%s\'), %d)' % (query, 32), 
+        c = self.extra(select={ 'rank': 'ts_rank_cd(core_compralineaitem.search_index, to_tsquery(\'spanish\', E\'%s\'), %d)' % (query, 32),
                                 'highlight_proveedor': 'ts_headline(\'spanish\', core_proveedor.nombre , to_tsquery(\'spanish\', E\'%s\'), \'StartSel=<em>, StopSel=</em>\')' % (query),
                                 'highlight_reparticion': 'ts_headline(\'spanish\', core_reparticion.nombre, to_tsquery(\'spanish\', E\'%s\'), \'StartSel=<em>, StopSel=</em>\')' % (query)},
                        where=["core_compralineaitem.search_index @@ to_tsquery('spanish', %s)"
@@ -141,9 +141,9 @@ class CompraManager(models.Manager):
 
         c.query.join((None, Compra._meta.db_table, None, None,))
         c.query.join((Compra._meta.db_table,  # core_compra
-                      CompraLineaItem._meta.db_table, # core_compralineaitem, 
-                      'id', 
-                      'compra_id'), 
+                      CompraLineaItem._meta.db_table, # core_compralineaitem,
+                      'id',
+                      'compra_id'),
                      promote=True)
         c.query.join((Compra._meta.db_table,
                       Proveedor._meta.db_table,
@@ -208,7 +208,7 @@ class CompraLineaItem(fts_models.SearchableModel):
         cursor = connection.cursor()
         cursor.execute("SELECT ts_headline('spanish', detalle, to_tsquery('spanish', E'%s'), 'StartSel=<em>, StopSel=</em>, MinWords=300, MaxWords=2000') AS highlighted FROM %s WHERE id = %s" % (qs, CompraLineaItem._meta.db_table, self.id))
         return cursor.fetchone()[0]
-       
+
 
     def __unicode__(self):
         return "%s (OC: %s)" % (self.detalle, self.compra.oc_numero)
