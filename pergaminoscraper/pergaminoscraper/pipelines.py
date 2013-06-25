@@ -5,9 +5,6 @@
 # See: http://doc.scrapy.org/topics/item-pipeline.html
 
 from scrapy.xlib.pydispatch import dispatcher
-from scrapy.core import signals
-from scrapy.core.exceptions import DropItem
-from scrapy.core.manager import scrapymanager
 from scrapy.http import Request
 from scrapy import log
 from pergaminoscraper.items import CompraItem, CompraLineaItem, ProveedorItem, parse_money
@@ -17,20 +14,6 @@ from twisted.internet import defer, threads
 
 from django.db import transaction, connection
 
-
-class ItemCounterPipeline(object):
-    def __init__(self):
-        self.proyectos_count = 0
-        dispatcher.connect(self.spider_closed, signals.spider_closed)
-
-    def process_item(self, spider, item):
-        if isinstance(item, CompraItem):
-            self.proyectos_count += 1
-
-        return item
-
-    def spider_closed(self, spider):
-        print "COMPRAS REGISTRADAS: %s" % self.proyectos_count
 
 class ComprasPersisterPipeline(object):
 
