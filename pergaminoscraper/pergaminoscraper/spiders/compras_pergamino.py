@@ -1,19 +1,20 @@
 from datetime import datetime
 import re
 import simplejson
+import urllib
 
 from scrapy.conf import settings
-from scrapy.http import Request
+from scrapy.http import Request, FormRequest
 from scrapy.spider import BaseSpider
 
 from pergaminoscraper.items import CompraItem, CompraLineaItem
 
 BASE_URL = 'http://compras.pergamino.gob.ar/compras_getdata.php'
-OC_DETAIL_BASE_URL = 'http://compras.pergamino.gob.ar/compras_getdetail.php'
+OC_DETAIL_BASE_URL = 'http://compras.pergamino.gob.ar/compras_getdetail.php?'
 
 class ComprasPergaminoSpider(BaseSpider):
 
-    name = 'compras_pergamino'
+    name = 'compras'
     allowed_domains = ['compras.pergamino.gob.ar']
 
     ejercicio = settings.get('EJERCICIO', datetime.now().year)
@@ -21,9 +22,9 @@ class ComprasPergaminoSpider(BaseSpider):
     def start_requests(self):
         return [FormRequest(BASE_URL,
                             formdata={
-                                'ejercicio': ejercicio,
-                                'page': 1,
-                                'rows': 10
+                                'ejercicio': str(self.ejercicio),
+                                'page': '1',
+                                'rows': '10'
                             },
                             callback=self.getOCs
                         )]
@@ -32,16 +33,16 @@ class ComprasPergaminoSpider(BaseSpider):
         ocs = simplejson.loads(response.body)
 
         for row in ocs['rows']:
-            req = FormRequest(OC_DETAIL_BASE_URL,
-                              formdata={
+            req = Request(OC_DETAIL_BASE_URL + urllib.urlencode({
                                   'ejercicio': row['EJERCICIO'],
                                   'oc': row['NRO_OC']
-                              },
+                              }),
                               callback=self.getOCDetalle)
 
             item = CompraItem()
             item['orden_compra'] = row['NRO_OC']
-            item['fecha'] = datetime.strptime(row['3'], '%d-%m-%Y 00:00:00').strftime('%Y-%m-%d')
+            item['fecha'] = datetime.strptime(row['3'],
+                                              '%d-%m-%Y 00:00:00').strftime('%Y-%m-%d')
             item['importe'] = row['IMPORTE_TOT']
             item['proveedor'] = row['RAZON_SOCIAL']
             item['destino'] = 'Municipalidad de Pergamino'
@@ -60,7 +61,6 @@ class ComprasPergaminoSpider(BaseSpider):
     def getOCDetalle(self, response):
 
         lineas = simplejson.loads(response.body)
-
         orden_compra = response.request.meta['compra']
 
         for oc_detalle in lineas:

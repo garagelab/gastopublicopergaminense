@@ -11,12 +11,13 @@ from datetime import date
 
 spanish_date = lambda day,month,year: date(int(year),int(month),int(day))
 
-MONEY_RE = re.compile(r'([\d\.]*),(\d+)')
+MONEY_RE = re.compile(r'(\d+),(\d+)')
 
 def parse_money(value):
     pesos, centavos = MONEY_RE.match(value.strip()).groups()
-    pesos = pesos.replace('.', '')
-    return float("%s.%s" % (pesos if pesos != '' else 0, centavos))
+    pesos = pesos.replace(',', '.')
+    f = float("%s.%s" % (pesos if pesos != '' else 0, centavos))
+    return f
 
 class ProveedorItem(Item):
     nombre = Field(output_processor=TakeFirst())
@@ -27,7 +28,7 @@ class ProveedorItem(Item):
 class CompraItem(Item):
     orden_compra = Field(output_processor=TakeFirst())
     fecha = Field(output_processor=lambda x: spanish_date(*(x[0].split('/'))).strftime('%Y-%m-%d'))
-    importe = Field(output_processor=lambda x: parse_money(x[0]))
+    importe = Field(input_processor=lambda x: parse_money(x[0]))
     proveedor = Field(output_processor=TakeFirst())
     suministro = Field(output_processor=TakeFirst())
     destino = Field(output_processor=TakeFirst())
@@ -44,10 +45,7 @@ class CompraItem(Item):
 class CompraLineaItem(Item):
     cantidad = Field(output_processor=TakeFirst())
     unidad_medida = Field(output_processor=TakeFirst())
-    importe = Field(output_processor=lambda x: parse_money(x[0]))
+    importe = Field(input_processor=lambda x: parse_money(x[0]))
     importe_total = Field(output_processor=lambda x: parse_money(x[0]))
     detalle = Field(output_processor=TakeFirst())
     anio = Field(output_processor=TakeFirst())
-
-
-

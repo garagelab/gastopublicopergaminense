@@ -10,8 +10,7 @@ from scrapy.core.exceptions import DropItem
 from scrapy.core.manager import scrapymanager
 from scrapy.http import Request
 from scrapy import log
-from pergaminoscraper.items import CompraItem, CompraLineaItem, ProveedorItem
-from pergaminoscraper.spiders.compras import ComprasSpider
+from pergaminoscraper.items import CompraItem, CompraLineaItem, ProveedorItem, parse_money
 from pergaminoweb.core import models
 
 from twisted.internet import defer, threads
@@ -47,15 +46,20 @@ class ComprasPersisterPipeline(object):
         if models.Compra.objects.filter(orden_compra=int(compra_item['orden_compra']), fecha=compra_item['fecha']).exists():
             return
 
-        proveedor, proveedor_created = models.Proveedor.objects.get_or_create(nombre_fantasia=compra_item['proveedor'])
+        proveedor, proveedor_created = models.Proveedor.objects.get_or_create(nombre_fantasia=compra_item['proveedor'], nombre=compra_item['proveedor'])
         reparticion, reparticion_created = models.Reparticion.objects.get_or_create_by_canonical_name(compra_item['destino'])
 
+        print "COMRA ITEM"
+        print compra_item['importe']
+
         compra = models.Compra(orden_compra=int(compra_item['orden_compra']),
-                               importe=str(compra_item['importe']),
+                               importe=parse_money(compra_item['importe']),
                                fecha=compra_item['fecha'],
-                               suministro=compra_item['suministro'],
+#                               suministro=compra_item['suministro'],
                                proveedor=proveedor,
                                destino=reparticion)
+
+        print compra
 
 
         compra.save()
@@ -64,8 +68,9 @@ class ComprasPersisterPipeline(object):
         # persistir lineas
         for cli in compra_item['compra_linea_items']:
             cli_obj = models.CompraLineaItem(compra=compra,
-                                             importe_unitario=str(cli['importe']),
+                                             importe_unitario=parse_money(cli['importe']),
                                              cantidad=cli['cantidad'],
                                              detalle=cli['detalle'],
-                                             unidad_medida=cli['unidad_medida'])
+#                                             unidad_medida=cli['unidad_medida']
+            )
             cli_obj.save()

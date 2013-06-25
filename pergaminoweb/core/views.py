@@ -1,7 +1,7 @@
 # coding: utf-8
-from mdqweb.annoying.decorators import render_to
-from mdqweb.core import models
-from mdqweb.utils import gviz_api, tagcloud
+from pergaminoweb.annoying.decorators import render_to
+from pergaminoweb.core import models
+from pergaminoweb.utils import gviz_api, tagcloud
 from datetime import datetime
 from django.contrib.sites.models import Site
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
@@ -29,11 +29,11 @@ PAGE_SIZE = 50
 CSV_FIELDNAMES = ['orden_de_compra', 'fecha', 'proveedor', 'destino', 'importe', 'url']
 
 sha1 = lambda m: hashlib.sha1(m).hexdigest()
-  
+
 
 def gasto_mensual(compras_queryset):
     """ gasto mensual para +compras_queryset+ """
-    return compras_queryset.extra(select={'mes': "DATE_TRUNC('month', fecha)::date", 
+    return compras_queryset.extra(select={'mes': "DATE_TRUNC('month', fecha)::date",
                                           'order_by': ['mes']}) \
                            .values('mes') \
                            .annotate(total=Sum('importe'))
@@ -46,10 +46,10 @@ def _reparticion_gastos_data(data):
         rv.append({'reparticion': r.nombre, 'total': float(r.total_compras)})
     rv.append({'reparticion': 'Resto de las reparticiones', 'total': sum([float(r.total_compras) for r in data[5:]])})
     return rv;
-    
+
 
 def _tagcloud(compra_lineas):
-    return tagcloud.make_tagcloud([cli.detalle 
+    return tagcloud.make_tagcloud([cli.detalle
                                    for cli in compra_lineas])
 
 def _get_page(request, param_name='page'):
@@ -59,7 +59,7 @@ def _get_page(request, param_name='page'):
         page = 1
 
     return page
-        
+
 # @condition(last_modified_func=lambda req, start_date, end_date: models.Compra.objects.filter(fecha__gte=start_date, fecha__lte=end_date).latest('created_at').created_at,
 #            etag_func=lambda req, start_date, end_date: sha1('%s:%s' % (req.path, models.Compra.objects.filter(fecha__gte=start_date, fecha__lte=end_date).latest('created_at').created_at)))
 # @vary_on_headers('Accept-Encoding')
@@ -84,13 +84,13 @@ def index(request, start_date, end_date):
 
     gasto_mensual_total = models.Compra.objects.total_periodo(fecha_desde=start_date, fecha_hasta=end_date)
 
-    
 
-    return { 
+
+    return {
         'reparticiones': top_reparticiones_por_gastos,
         'proveedores': models.Proveedor.objects.por_compras(compra__fecha__gte=start_date, compra__fecha__lte=end_date),
         'gasto_mensual_total': gasto_mensual_total,
-        'gasto_mensual_promedio': models.Compra.objects.promedio_mensual_periodo(start_date, 
+        'gasto_mensual_promedio': models.Compra.objects.promedio_mensual_periodo(start_date,
                                                                                  datetime.now() if datetime.now() < end_date else end_date),
         'cantidad_ordenes_de_compra': models.Compra.objects.filter(fecha__gte=start_date, fecha__lte=end_date).count(),
         'ordenes_de_compra': ordenes_de_compra.order_by('-fecha')[:100],
@@ -101,25 +101,25 @@ def index(request, start_date, end_date):
         'reparticion_datatable_js': reparticion_gastos_datatable.ToJSCode('reparticion_gastos',
                                                                          columns_order=('reparticion', 'total'),
                                                                          order_by='reparticion'),
-        'tagcloud': _tagcloud(models.CompraLineaItem.objects.filter(compra__fecha__gte=start_date,  
+        'tagcloud': _tagcloud(models.CompraLineaItem.objects.filter(compra__fecha__gte=start_date,
                                                                     compra__fecha__lte=end_date)),
         'start_date': start_date,
         'end_date': end_date
         }
 
 def index_anual(request, anio):
-    return index(request, 
+    return index(request,
                  datetime(int(anio), 1, 1), # principio del año
                  datetime(int(anio), 12, 31)) # ultimo dia del año
 
 def index_mensual(request, anio, mes):
-    return index(request, 
+    return index(request,
                  datetime(int(anio), int(mes), 1), # principio del mes
                  datetime(int(anio), int(mes), calendar.monthrange(int(anio), int(mes))[1])) # ultimo dia del mes
 
 
 def index_periodo(request, start_anio, start_mes, end_anio, end_mes):
-    return index(request, 
+    return index(request,
                  datetime(int(start_anio), int(start_mes), 1), # principio del mes
                  datetime(int(end_anio), int(end_mes), calendar.monthrange(int(end_anio), int(end_mes))[1])) # ultimo dia del mes
 
@@ -129,7 +129,7 @@ def ordenes_csv(request, compras, filename):
 
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=%s.csv' % filename
-    
+
     writer = csv.DictWriter(response, fieldnames=CSV_FIELDNAMES)
     writer.writerow(dict((fn,fn) for fn in CSV_FIELDNAMES))
 
@@ -159,8 +159,8 @@ def index_ordenes(request, start_date, end_date):
             .filter(fecha__gte=start_date,
                     fecha__lte=end_date) \
                     .order_by('-fecha')
-        
-    paginator = Paginator(compras.select_related('proveedor', 'destino'), 
+
+    paginator = Paginator(compras.select_related('proveedor', 'destino'),
                           PAGE_SIZE)
 
     # Si la pagina esta fuera de rango, mostrar la última
@@ -172,8 +172,8 @@ def index_ordenes(request, start_date, end_date):
     format = request.GET.get('format')
 
     if format == 'csv':
-        return ordenes_csv(request, 
-                           compras, 
+        return ordenes_csv(request,
+                           compras,
                            'ordenes-de-compra_%s_%s' % (start_date.strftime('%Y-%m'), end_date.strftime('%Y-%m')))
 
     return render_to_response('list_ordenes.html',
@@ -185,12 +185,12 @@ def index_ordenes(request, start_date, end_date):
 
 
 def index_ordenes_anual(request, anio):
-    return index_ordenes(request, 
+    return index_ordenes(request,
                          datetime(int(anio), 1, 1), # principio del año
                          datetime(int(anio), 12, 31)) # ultimo dia del año
 
 def index_ordenes_mensual(request, anio, mes):
-    return index_ordenes(request, 
+    return index_ordenes(request,
                          datetime(int(anio), int(mes), 1), # principio del mes
                          datetime(int(anio), int(mes), calendar.monthrange(int(anio), int(mes))[1])) # ultimo dia del mes
 
@@ -212,16 +212,16 @@ def reparticiones(request):
 
 @render_to('reparticion/show.html')
 def reparticion(request, reparticion_slug, start_date, end_date):
-    
+
     reparticion = get_object_or_404(models.Reparticion, slug=reparticion_slug)
     facturacion_total_periodo = models.Compra.objects \
-        .filter(destino=reparticion, 
+        .filter(destino=reparticion,
                 fecha__gte=start_date, fecha__lte=end_date) \
                 .aggregate(total=Sum('importe'))['total'] or 0
 
     ordenes_de_compra = models.Compra.objects \
                               .select_related('proveedor') \
-                              .filter(fecha__gte=start_date, 
+                              .filter(fecha__gte=start_date,
                                       fecha__lte=end_date,
                                       destino=reparticion)
 
@@ -232,8 +232,8 @@ def reparticion(request, reparticion_slug, start_date, end_date):
 
 
     return { 'reparticion': reparticion,
-             'proveedores': models.Proveedor.objects.por_compras(compra__fecha__gte=start_date, 
-                                                                 compra__fecha__lte=end_date, 
+             'proveedores': models.Proveedor.objects.por_compras(compra__fecha__gte=start_date,
+                                                                 compra__fecha__lte=end_date,
                                                                  compra__destino=reparticion),
              'facturacion_total_periodo': facturacion_total_periodo,
 
@@ -247,7 +247,7 @@ def reparticion(request, reparticion_slug, start_date, end_date):
 
 
              'tagcloud': _tagcloud(models.CompraLineaItem.objects \
-                                        .filter(compra__fecha__gte=start_date,  
+                                        .filter(compra__fecha__gte=start_date,
                                                 compra__fecha__lte=end_date,
                                                 compra__destino=reparticion)),
              'start_date': start_date,
@@ -256,7 +256,7 @@ def reparticion(request, reparticion_slug, start_date, end_date):
 
 @render_to('reparticion/list_ordenes.html')
 def reparticion_ordenes(request, reparticion_slug, start_date, end_date):
-    
+
     reparticion = get_object_or_404(models.Reparticion, slug=reparticion_slug)
 
     compras_qs = models.Compra.objects.select_related('proveedor', 'destino') \
@@ -273,7 +273,7 @@ def reparticion_ordenes(request, reparticion_slug, start_date, end_date):
                            '%s_%s_%s' % (reparticion_slug, start_date.strftime('%Y-%m'), end_date.strftime('%Y-%m')))
 
 
-    paginator = Paginator(compras_qs, 
+    paginator = Paginator(compras_qs,
                           PAGE_SIZE)
 
     # Si la pagina esta fuera de rango, mostrar la última
@@ -287,18 +287,18 @@ def reparticion_ordenes(request, reparticion_slug, start_date, end_date):
              'start_date': start_date,
              'end_date': end_date
              }
-                                                               
+
 
 def reparticion_anual(request, reparticion_slug, anio):
-    return reparticion(request, 
+    return reparticion(request,
                        reparticion_slug,
                        datetime(int(anio), 1, 1), # principio del año
                        datetime(int(anio), 12, 31)) # ultimo dia del año
 
 
 def reparticion_ordenes_anual(request, reparticion_slug, anio):
-    return reparticion_ordenes(request, 
-                               reparticion_slug, 
+    return reparticion_ordenes(request,
+                               reparticion_slug,
                                datetime(int(anio), 1, 1), # principio del año
                                datetime(int(anio), 12, 31)) # ultimo dia del año
 
@@ -313,7 +313,7 @@ def reparticion_ordenes_mensual(request, reparticion_slug, anio, mes):
                                reparticion_slug,
                                datetime(int(anio), int(mes), 1), # principio del mes
                                datetime(int(anio), int(mes), calendar.monthrange(int(anio), int(mes))[1])) # ultimo dia del mes
-                       
+
 def reparticion_periodo(request, reparticion_slug, start_anio, start_mes, end_anio, end_mes):
     return reparticion(request,
                        reparticion_slug,
@@ -326,8 +326,8 @@ def reparticion_ordenes_periodo(request, reparticion_slug, start_anio, start_mes
                                reparticion_slug,
                                datetime(int(start_anio), int(start_mes), 1), # principio del mes
                                datetime(int(end_anio), int(end_mes), calendar.monthrange(int(end_anio), int(end_mes))[1])) # ultimo dia del mes
-    
-                       
+
+
 @render_to('proveedor/list.html')
 def proveedores(request):
     return { 'proveedores': models.Proveedor.objects \
@@ -340,7 +340,7 @@ def proveedores(request):
 def proveedor(request, proveedor_slug, start_date, end_date):
     proveedor = get_object_or_404(models.Proveedor, slug=proveedor_slug)
 
-    ordenes_de_compra = models.Compra.objects.filter(fecha__gte=start_date, 
+    ordenes_de_compra = models.Compra.objects.filter(fecha__gte=start_date,
                                                      fecha__lte=end_date,
                                                      proveedor=proveedor)
 
@@ -353,7 +353,7 @@ def proveedor(request, proveedor_slug, start_date, end_date):
     facturacion_total_periodo = ordenes_de_compra.aggregate(total=Sum('importe'))['total'] or 0
 
     return { 'proveedor' : proveedor,
-             'clientes': models.Reparticion.objects.por_gastos(compra__fecha__gte=start_date, 
+             'clientes': models.Reparticion.objects.por_gastos(compra__fecha__gte=start_date,
                                                                compra__fecha__lte=end_date,
                                                                compra__proveedor=proveedor),
 
@@ -415,7 +415,7 @@ def proveedor_anual(request, proveedor_slug, anio):
                      proveedor_slug,
                      datetime(int(anio), 1, 1), # principio del año
                      datetime(int(anio), 12, 31)) # ultimo dia del año
-                     
+
 def proveedor_ordenes_anual(request, proveedor_slug, anio):
     return proveedor_ordenes(request,
                              proveedor_slug,
@@ -457,7 +457,7 @@ def orden_de_compra(request, numero, anio, format='html'):
                                   context_instance=RequestContext(request))
     elif format == 'json':
         response = HttpResponse(content_type = 'application/javascript')
-        
+
         obj = { 'href': orden.get_absolute_url(),
                 'numero': orden.oc_numero,
                 'fecha': orden.fecha.strftime('%Y-%m-%d'),
@@ -484,8 +484,8 @@ def orden_de_compra(request, numero, anio, format='html'):
 
     else:
         return HttpResponseBadRequest()
-              
-                             
+
+
 @render_to('need_help.html')
 def need_help(request, format='html'):
     NEED_HELP_FILE = '/tmp/need_help'
@@ -530,7 +530,7 @@ def need_help(request, format='html'):
        txtCaptcha = 'CaptchaImage.axd?guid='
        viewstate  = 'id="__VIEWSTATE'
        validation = 'id="__EVENTVALIDATION'
-       
+
        r = urllib2.urlopen(captchaSource).read()
        def extract(html, pattern1, pattern2 = ''):
            pattern    = html.index(pattern1)
@@ -548,4 +548,3 @@ def need_help(request, format='html'):
        except:
           msg = 'La pagina de la municipalidad cambio, por favor comuniquese con manu'
     return vars()
-

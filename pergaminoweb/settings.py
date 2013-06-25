@@ -1,4 +1,4 @@
-# Django settings for mdqweb project.
+# Django settings for pergaminoweb project.
 
 import os
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -91,7 +91,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
 )
 
-ROOT_URLCONF = 'mdqweb.urls'
+ROOT_URLCONF = 'pergaminoweb.urls'
 
 TEMPLATE_DIRS = (
     os.path.join(ROOT_DIR, 'templates'),
@@ -107,14 +107,14 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'south',
-    'mdqweb.annoying',
+    'pergaminoweb.annoying',
     'django_extensions',
     'core',
     'postgres_fts',
     'django.contrib.flatpages',
 )
 
-CACHE_BACKEND = 'file:///tmp/mdqweb_django_cache'
+CACHE_BACKEND = 'file:///tmp/pergaminoweb_django_cache'
 
 try:
     from settings_local import *
