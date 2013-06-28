@@ -17,7 +17,10 @@ from django.db import transaction, connection
 
 class ComprasPersisterPipeline(object):
 
-    def process_item(self, spider, item):
+    def __init__(self):
+        log.msg('INIT ComprasPersisterPipeline', level=log.INFO)
+
+    def process_item(self, item, spider):
         if isinstance(item, CompraItem):
             self._persistCompraItem(item)
 
@@ -38,9 +41,6 @@ class ComprasPersisterPipeline(object):
 #                               suministro=compra_item['suministro'],
                                proveedor=proveedor,
                                destino=reparticion)
-
-        print compra
-
 
         compra.save()
 
