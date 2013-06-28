@@ -11,10 +11,10 @@ class OrdenesDeCompraFeed(Feed):
     link = "/"
 
     def title(self):
-        return "Gasto Público Marplatense: Últimas órdenes de compra"
+        return "Gasto Público Pergaminense: Últimas órdenes de compra"
 
     def description(self):
-        description = "Últimas órdenes de compra publicadas por la Municipalidad de General Pueyrredón"
+        description = "Últimas órdenes de compra publicadas por la Municipalidad de Pergamino"
 
     def _items(self):
         return models.Compra.objects.select_related('destino', 'proveedor') \

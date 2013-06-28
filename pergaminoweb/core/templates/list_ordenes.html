@@ -6,13 +6,13 @@
 
 {% block title %}
 {% tiempo_en_letras start_date end_date as periodo %}
-Órdenes de Compra emitidas por la Municipalidad de General Pueyrredón {{periodo|striptags}}- {{block.super}}
+Órdenes de Compra emitidas por la Municipalidad de Pergamino {{periodo|striptags}}- {{block.super}}
 {% endblock %}
 
 {% block heading %}
 {% tiempo_en_letras start_date end_date as periodo %}
 <div id="descripcion">
-  <h2>Órdenes de Compra emitidas por la Municipalidad de General Pueyrredón {{periodo}} {% if request.GET.q %} para la búsqueda "<strong>{{request.GET.q}}</strong>"{% endif %}</h2>
+  <h2>Órdenes de Compra emitidas por la Municipalidad de Pergamino {{periodo}} {% if request.GET.q %} para la búsqueda "<strong>{{request.GET.q}}</strong>"{% endif %}</h2>
 </div>
 {% endblock %}
 
@@ -81,7 +81,7 @@
     {% endfor %}
     {% endwith %}
   </table>
- 
+
   <div class="pagination">
     <span class="step-links">
       {% if ordenes_de_compra.has_previous %}
